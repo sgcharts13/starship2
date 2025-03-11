@@ -7,7 +7,6 @@ import "../styles/timetable.css";
 const GeneratedSchedules = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { addCourse } = useCourseContext();
 
   const selectedCourses = location.state?.selectedCourses || [];
   const preferences = location.state?.preferences || {};
@@ -30,10 +29,12 @@ const GeneratedSchedules = () => {
       population = await evolvePopulation(population);
     }
 
-    const sortedSchedules = population
+    const uniqueSchedules = getUniqueSchedules(population);
+
+    const sortedSchedules = uniqueSchedules
       .sort((a, b) => a.fitness - b.fitness) // Sort in ascending order
       .slice(0, 3) // Select the first three schedules
-      .map((schedule) => ({
+      .map((schedule, index) => ({
         schedule: schedule.schedule,
         avgStartTime: formatTime(
           calculateEarliestTime(schedule.schedule, "startTime")
@@ -44,6 +45,7 @@ const GeneratedSchedules = () => {
         avgBreakTime: formatTime(calculateAverageBreakTime(schedule.schedule)),
         days: new Set(schedule.schedule.map((entry) => entry.day)).size,
         score: schedule.fitness, // Include the score
+        timetableNumber: index + 1, // Add timetable number
       }));
 
     console.log(sortedSchedules);
@@ -83,7 +85,11 @@ const GeneratedSchedules = () => {
 
         return indexDetails.timeslots
           .map((timeslot) => ({
+            courseName: course.name || "Unknown Course",
             courseCode: course.code || "Unknown Course",
+            courseIndex: chosenIndex || "Unknown Index",
+            class_group: timeslot.class_group || "Unknown Group",
+            venue: timeslot.venue || "Unknown Venue",
             day: timeslot.day || "N/A",
             startTime: timeslot.start || "00:00",
             endTime: timeslot.end || "00:00",
@@ -291,8 +297,21 @@ const GeneratedSchedules = () => {
   };
 
   const handleAddToTimetable = (schedule) => {
-    schedule.forEach((index) => addCourse(index));
-    navigate("/");
+    const uniqueIndexes = new Set();
+    const addedIndexes = [];
+
+    schedule.forEach((slot) => {
+      const indexKey = `${slot.courseName}-${slot.courseIndex}`;
+      if (!uniqueIndexes.has(indexKey)) {
+        uniqueIndexes.add(indexKey);
+        addedIndexes.push({
+          courseName: slot.courseName,
+          selectedIndexId: slot.courseIndex,
+        });
+      }
+    });
+
+    navigate("/", { state: { addedIndexes } });
   };
 
   const getBreakTimes = (timeslots) => {
@@ -313,7 +332,7 @@ const GeneratedSchedules = () => {
   const calculateRowSpan = (start, end) => {
     const startTime = parseTime(start);
     const endTime = parseTime(end);
-    return (endTime - startTime) * 2; // Each row represents 30 minutes
+    return Math.round((endTime - startTime) * 2); // Each row represents 30 minutes
   };
 
   const renderTimetable = (schedule) => {
@@ -322,8 +341,8 @@ const GeneratedSchedules = () => {
     const timetableMatrix = {};
 
     schedule.forEach((slot) => {
-      const formattedStart = formatTime(parseTime(slot.startTime));
-      const formattedEnd = formatTime(parseTime(slot.endTime));
+      const formattedStart = formatTime(parseTime(slot.startTime)).slice(0, -3);
+      const formattedEnd = formatTime(parseTime(slot.endTime)).slice(0, -3);
       if (!timetableMatrix[slot.day]) timetableMatrix[slot.day] = [];
 
       timetableMatrix[slot.day].push({
@@ -332,7 +351,6 @@ const GeneratedSchedules = () => {
         details: slot,
       });
     });
-    console.log(timetableMatrix);
 
     return (
       <table className="timetable">
@@ -354,12 +372,14 @@ const GeneratedSchedules = () => {
                 <td>{formattedTime.slice(0, -3)}</td>
                 {days.map((day) => {
                   const slot = timetableMatrix[day]?.find(
-                    (s) => s.start === formattedTime
+                    (s) => s.details.startTime === formattedTime
                   );
-                  console.log(slot);
 
                   if (slot) {
-                    const rowSpan = calculateRowSpan(slot.start, slot.end);
+                    const rowSpan = calculateRowSpan(
+                      slot.details.startTime,
+                      slot.details.endTime
+                    );
                     const isClash = slot.details.length > 1;
                     const backgroundColor = isClash ? "red" : "#ADD8E6";
 
@@ -376,7 +396,8 @@ const GeneratedSchedules = () => {
                         <div>
                           <div>
                             <strong>
-                              {slot.details.courseCode} -{" "}
+                              {slot.details.courseCode}{" "}
+                              {slot.details.courseName} -{" "}
                               {slot.details.class_group}
                             </strong>
                             <br />
@@ -390,7 +411,9 @@ const GeneratedSchedules = () => {
                     );
                   } else if (
                     timetableMatrix[day]?.some(
-                      (s) => formattedTime > s.start && formattedTime < s.end
+                      (s) =>
+                        formattedTime > s.details.startTime &&
+                        formattedTime < s.details.endTime
                     )
                   ) {
                     return null; // Prevent duplicate slots rendering
@@ -406,11 +429,43 @@ const GeneratedSchedules = () => {
     );
   };
 
+  const getUniqueSchedules = (population) => {
+    const uniqueSchedules = [];
+    const seenSchedules = new Set();
+
+    population.forEach((individual) => {
+      const scheduleString = JSON.stringify(
+        individual.schedule.map((slot) => ({
+          courseCode: slot.courseCode,
+          day: slot.day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        }))
+      );
+
+      if (!seenSchedules.has(scheduleString)) {
+        seenSchedules.add(scheduleString);
+        uniqueSchedules.push(individual);
+      }
+    });
+
+    return uniqueSchedules;
+  };
+
   const dayOrder = ["MON", "TUE", "WED", "THU", "FRI"];
 
   return (
     <div className="generated-schedules-page">
       <h1>Generated Schedules</h1>
+      <button
+        onClick={() =>
+          navigate("/schedule-generator", {
+            state: { selectedCourses, preferences },
+          })
+        }
+      >
+        Back
+      </button>
       <p>
         Preferences: Days: {preferences.days}, Start: {preferences.startTime},
         End: {preferences.endTime}, Break: {preferences.breakTime || "N/A"}
@@ -427,7 +482,7 @@ const GeneratedSchedules = () => {
 
         return (
           <div key={idx} className="schedule-option">
-            <h2>Schedule {idx + 1}</h2>
+            <h2>Timetable {scheduleObj.timetableNumber}</h2>
             <p>
               Days: {scheduleObj.days}, Start Time: {scheduleObj.avgStartTime},
               End Time: {scheduleObj.avgEndTime}, Avg Break Time:{" "}

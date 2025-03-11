@@ -12,9 +12,10 @@ const HomePage = () => {
   // If navigating from generatedSchedules, add the selected timetable indexes
   useEffect(() => {
     if (location.state?.addedIndexes) {
-      setSelectedIndexes((prev) => [...prev, ...location.state.addedIndexes]);
+      setSelectedIndexes(location.state.addedIndexes);
     }
   }, [location.state]);
+  console.log(selectedCourses, selectedIndexes);
 
   return (
     <div className="home-page">

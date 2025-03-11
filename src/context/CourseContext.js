@@ -15,9 +15,18 @@ export const useCourseContext = () => {
 // Create a provider component
 export const CourseProvider = ({ children }) => {
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [warning, setWarning] = useState("");
 
   const addCourse = (course) => {
-    setSelectedCourses((prev) => [...prev, course]);
+    setSelectedCourses((prev) => {
+      // Check if the course already exists in the list
+      if (prev.some((c) => c.id === course.id)) {
+        setWarning(`The course ${course.code} has already been added.`);
+        return prev; // Return the previous list if the course already exists
+      }
+      setWarning(""); // Clear the warning if the course is added successfully
+      return [...prev, course]; // Add the course to the list if it doesn't exist
+    });
   };
 
   const removeCourse = (courseId) => {
@@ -32,7 +41,14 @@ export const CourseProvider = ({ children }) => {
 
   return (
     <CourseContext.Provider
-      value={{ selectedCourses, addCourse, removeCourse, resetCourses }}
+      value={{
+        selectedCourses,
+        addCourse,
+        removeCourse,
+        resetCourses,
+        warning,
+        setWarning, // Include setWarning in the context value
+      }}
     >
       {children}
     </CourseContext.Provider>
