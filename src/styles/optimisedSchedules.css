@@ -1,0 +1,78 @@
+/* General styling for the Optimised Schedules page */
+.optimised-schedules-page {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+.optimised-schedules-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.optimised-schedules-header h1 {
+  font-size: 28px;
+  color: #0056b3;
+}
+
+.optimised-schedules-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.schedule-option {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-option h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.schedule-option ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.schedule-option ul li {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.schedule-option button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.schedule-option button:hover {
+  background-color: #0056b3;
+}
+
+.finalize-schedule-button {
+  display: block;
+  margin: 20px auto;
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.finalize-schedule-button:hover {
+  background-color: #218838;
+}

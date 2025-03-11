@@ -1,0 +1,19 @@
+.add-courses-page {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.add-courses-body {
+  display: flex;
+  gap: 20px;
+}
+
+.add-to-schedule-button {
+  margin-top: 20px;
+}
+
+.selected-courses-list,
+.course-search {
+  flex: 1;
+}
