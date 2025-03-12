@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Timetable from "../components/Timetable";
 import { useCourseContext } from "../context/CourseContext";
 import "../styles/homePage.css";
 import { Link, useLocation } from "react-router-dom";
+import { toPng } from "html-to-image";
 
 const HomePage = () => {
   const { selectedCourses, removeCourse } = useCourseContext();
   const [selectedIndexes, setSelectedIndexes] = useState([]);
   const location = useLocation();
+  const timetableRef = useRef(null);
+
+  function zeroPad(num, places) {
+    var zero = places - num.toString().length + 1;
+    return Array(+(zero > 0 && zero)).join("0") + num;
+  }
 
   // If navigating from generatedSchedules, add the selected timetable indexes
   useEffect(() => {
@@ -16,6 +23,26 @@ const HomePage = () => {
     }
   }, [location.state]);
   console.log(selectedCourses, selectedIndexes);
+
+  const handleExportAsPng = () => {
+    if (timetableRef.current) {
+      const originalBackgroundColor =
+        timetableRef.current.style.backgroundColor;
+      timetableRef.current.style.backgroundColor = "white";
+
+      toPng(timetableRef.current)
+        .then((dataUrl) => {
+          timetableRef.current.style.backgroundColor = originalBackgroundColor;
+          const link = document.createElement("a");
+          link.href = dataUrl;
+          link.download = "timetable.png";
+          link.click();
+        })
+        .catch((err) => {
+          console.error("Failed to export timetable as PNG", err);
+        });
+    }
+  };
 
   return (
     <div className="home-page">
@@ -26,14 +53,16 @@ const HomePage = () => {
       <Link to="/schedule-generator">
         <button>Generate Schedule</button>
       </Link>
-      <div className="home-body">
+      <div className="home-body" ref={timetableRef}>
         <Timetable selectedIndexes={selectedIndexes} />
         <div className="selected-courses-container">
           <h2>Selected Courses</h2>
           {selectedCourses?.length > 0 ? (
             selectedCourses.map((course) => (
               <div key={course.code} className="selected-course-item">
-                <h3>{course.name}</h3>
+                <h3>
+                  {course.code} {course.name}
+                </h3>
                 <select
                   value={
                     selectedIndexes.find(
@@ -45,6 +74,7 @@ const HomePage = () => {
                       ...prev.filter((item) => item.courseName !== course.name),
                       {
                         courseName: course.name,
+                        courseCode: course.code,
                         selectedIndexId: e.target.value,
                       },
                     ])
@@ -53,7 +83,7 @@ const HomePage = () => {
                   <option value="">Select Index</option>
                   {course.indexes.map((index) => (
                     <option key={index} value={index}>
-                      {index}
+                      {zeroPad(index, 5)}
                     </option>
                   ))}
                 </select>
@@ -64,6 +94,8 @@ const HomePage = () => {
           ) : (
             <p>No courses selected</p>
           )}
+          <br></br>
+          <button onClick={handleExportAsPng}>Export Timetable as PNG</button>
         </div>
       </div>
     </div>

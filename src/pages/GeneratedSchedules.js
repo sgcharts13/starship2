@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCourseContext } from "../context/CourseContext";
 import { getIndexDetails } from "../services/databaseService";
 import "../styles/timetable.css";
 
@@ -306,6 +305,7 @@ const GeneratedSchedules = () => {
         uniqueIndexes.add(indexKey);
         addedIndexes.push({
           courseName: slot.courseName,
+          courseCode: slot.courseCode,
           selectedIndexId: slot.courseIndex,
         });
       }

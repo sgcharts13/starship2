@@ -8,12 +8,18 @@ const Timetable = ({ selectedIndexes }) => {
   useEffect(() => {
     const fetchTimeslots = async () => {
       const newTimeslots = [];
-      for (const { courseName, selectedIndexId } of selectedIndexes) {
+      for (const {
+        courseName,
+        courseCode,
+        selectedIndexId,
+      } of selectedIndexes) {
+        console.log(courseName, courseCode, selectedIndexId);
         const indexDetails = await getIndexDetails(selectedIndexId);
         if (indexDetails) {
           const courseSlots = indexDetails.timeslots.map((slot) => ({
             ...slot,
             courseName,
+            courseCode,
           }));
           newTimeslots.push(...courseSlots);
         }
@@ -119,6 +125,7 @@ const Timetable = ({ selectedIndexes }) => {
                   );
 
                   if (slot) {
+                    console.log(slot);
                     const rowSpan = calculateRowSpan(slot.start, slot.end);
                     const isClash = slot.courses.length > 1;
                     const backgroundColor = isClash ? "red" : "#ADD8E6";
@@ -141,7 +148,8 @@ const Timetable = ({ selectedIndexes }) => {
                               {slot.courses.map((course, index) => (
                                 <span key={index}>
                                   <strong>
-                                    {course.courseName} - {course.class_group}
+                                    {course.courseCode} {course.courseName} -{" "}
+                                    {course.class_group}
                                   </strong>{" "}
                                   <br />
                                   {course.start.slice(0, -3)} -{" "}
@@ -154,6 +162,7 @@ const Timetable = ({ selectedIndexes }) => {
                           ) : (
                             <div>
                               <strong>
+                                {slot.courses[0].courseCode}{" "}
                                 {slot.courses[0].courseName} -{" "}
                                 {slot.courses[0].class_group}
                               </strong>
