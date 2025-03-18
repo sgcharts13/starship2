@@ -1,6 +1,6 @@
 // ScheduleGenerator.js
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useCourseContext } from "../context/CourseContext";
 import "../styles/scheduleGenerator.css";
 import SelectedCoursesList from "../components/SelectedCoursesList";
@@ -54,7 +54,21 @@ const ScheduleGenerator = () => {
   };
 
   return (
-    <div className="schedule-generator">
+    <div className="schedule-generator-page">
+      <nav className="navbar">
+        <div className="logo-placeholder">Logo</div>
+        <div className="nav-links">
+          <Link to="/add-courses">
+            <button>Add Courses</button>
+          </Link>
+          <Link to="/schedule-generator">
+            <button>Generate Schedule</button>
+          </Link>
+          <Link to="/user-guide">
+            <button>User Guide</button>
+          </Link>
+        </div>
+      </nav>
       <h1>Schedule Generator</h1>
       <button onClick={handleBackToHome}>Back to Home</button>
       <div className="add-courses-body">

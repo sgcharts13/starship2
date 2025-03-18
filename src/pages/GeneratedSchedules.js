@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { getIndexDetails } from "../services/databaseService";
 import "../styles/timetable.css";
+import "../styles/generatedSchedules.css"; // Add this import for the new CSS file
 
 const GeneratedSchedules = () => {
   const location = useLocation();
@@ -454,8 +455,55 @@ const GeneratedSchedules = () => {
 
   const dayOrder = ["MON", "TUE", "WED", "THU", "FRI"];
 
+  const isConstraintViolated = (value, constraint, type) => {
+    if (type === "startTime") {
+      return value < parseTime(constraint);
+    } else if (type === "endTime") {
+      return value > parseTime(constraint);
+    } else if (type === "breakTime") {
+      const breakTimes = value.split(", ").map(parseTime);
+      return breakTimes.some((breakTime) => breakTime > constraint);
+    }
+    return false;
+  };
+
+  const formatBreakTimes = (breakTimes, constraint) => {
+    return breakTimes
+      .split(", ")
+      .map((breakTime, idx) => {
+        const parsedBreakTime = parseTime(breakTime);
+        const isViolated = parsedBreakTime > constraint;
+        return (
+          <span
+            key={idx}
+            style={{
+              color: isViolated ? "red" : "inherit",
+              fontWeight: isViolated ? "bold" : "normal",
+            }}
+          >
+            {breakTime}
+          </span>
+        );
+      })
+      .reduce((prev, curr) => [prev, ", ", curr]);
+  };
+
   return (
     <div className="generated-schedules-page">
+      <nav className="navbar">
+        <div className="logo-placeholder">Logo</div>
+        <div className="nav-links">
+          <Link to="/add-courses">
+            <button>Add Courses</button>
+          </Link>
+          <Link to="/schedule-generator">
+            <button>Generate Schedule</button>
+          </Link>
+          <Link to="/user-guide">
+            <button>User Guide</button>
+          </Link>
+        </div>
+      </nav>
       <h1>Generated Schedules</h1>
       <button
         onClick={() =>
@@ -511,23 +559,60 @@ const GeneratedSchedules = () => {
                   .filter((day) => timeslotsByDay[day])
                   .map((day) => {
                     const timeslots = timeslotsByDay[day];
-                    const startTime = formatTime(
-                      Math.min(
-                        ...timeslots.map((slot) => parseTime(slot.startTime))
-                      )
+                    const startTime = Math.min(
+                      ...timeslots.map((slot) => parseTime(slot.startTime))
                     );
-                    const endTime = formatTime(
-                      Math.max(
-                        ...timeslots.map((slot) => parseTime(slot.endTime))
-                      )
+                    const endTime = Math.max(
+                      ...timeslots.map((slot) => parseTime(slot.endTime))
                     );
                     const breakTimes = getBreakTimes(timeslots);
+
                     return (
                       <tr key={day}>
                         <td>{day}</td>
-                        <td>{startTime}</td>
-                        <td>{endTime}</td>
-                        <td>{breakTimes}</td>
+                        <td
+                          style={{
+                            color: isConstraintViolated(
+                              startTime,
+                              preferences.startTime,
+                              "startTime"
+                            )
+                              ? "red"
+                              : "inherit",
+                            fontWeight: isConstraintViolated(
+                              startTime,
+                              preferences.startTime,
+                              "startTime"
+                            )
+                              ? "bold"
+                              : "normal",
+                          }}
+                        >
+                          {formatTime(startTime)}
+                        </td>
+                        <td
+                          style={{
+                            color: isConstraintViolated(
+                              endTime,
+                              preferences.endTime,
+                              "endTime"
+                            )
+                              ? "red"
+                              : "inherit",
+                            fontWeight: isConstraintViolated(
+                              endTime,
+                              preferences.endTime,
+                              "endTime"
+                            )
+                              ? "bold"
+                              : "normal",
+                          }}
+                        >
+                          {formatTime(endTime)}
+                        </td>
+                        <td>
+                          {formatBreakTimes(breakTimes, preferences.breakTime)}
+                        </td>
                       </tr>
                     );
                   })}

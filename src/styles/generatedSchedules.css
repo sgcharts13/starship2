@@ -1,19 +1,4 @@
-.schedule-generator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.selected-courses-container {
-  width: 30%;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-/* scheduleGenerator.css */
-
-.schedule-generator-page {
+.generated-schedules-page {
   font-family: Arial, sans-serif;
   padding-top: 60px; /* Add padding to avoid content being hidden behind the fixed navbar */
 }
@@ -55,5 +40,47 @@
 }
 
 .nav-links button:hover {
+  background-color: #45a049;
+}
+
+.schedule-option {
+  margin-top: 20px;
+}
+
+.schedule-option h2 {
+  margin-bottom: 10px;
+}
+
+.schedule-option p {
+  margin-bottom: 10px;
+}
+
+.schedule-option table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.schedule-option th,
+.schedule-option td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+.schedule-option th {
+  background-color: #f2f2f2;
+}
+
+.schedule-option button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.schedule-option button:hover {
   background-color: #45a049;
 }

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import SelectedCoursesList from "../components/SelectedCoursesList";
 import CourseSearch from "../components/CourseSearch";
 import { useCourseContext } from "../context/CourseContext";
@@ -27,11 +27,21 @@ const AddCoursesPage = () => {
 
   return (
     <div className="add-courses-page">
-      <div className="add-courses-header">
-        <h1>Add Courses</h1>
-        <button onClick={() => navigate("/")}>Return to Home</button>
-      </div>
-      <br></br>
+      <nav className="navbar">
+        <div className="logo-placeholder">Logo</div>
+        <div className="nav-links">
+          <Link to="/add-courses">
+            <button>Add Courses</button>
+          </Link>
+          <Link to="/schedule-generator">
+            <button>Generate Schedule</button>
+          </Link>
+          <Link to="/user-guide">
+            <button>User Guide</button>
+          </Link>
+        </div>
+      </nav>
+      <h1>Add Courses</h1>
       <div className="add-courses-body">
         <SelectedCoursesList
           courses={selectedCourses}
@@ -39,9 +49,7 @@ const AddCoursesPage = () => {
         />
         <CourseSearch onAddCourse={addCourse} />
       </div>
-      <br></br>
       {warning && <div className="warning">{warning}</div>}
-      <br></br>
       <div className="add-courses-body">
         <button
           className="add-to-schedule-button"

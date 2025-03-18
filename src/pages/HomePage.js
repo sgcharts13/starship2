@@ -3,11 +3,13 @@ import Timetable from "../components/Timetable";
 import { useCourseContext } from "../context/CourseContext";
 import "../styles/homePage.css";
 import { Link, useLocation } from "react-router-dom";
+import { getIndexDetails } from "../services/databaseService";
 import { toPng } from "html-to-image";
 
 const HomePage = () => {
   const { selectedCourses, removeCourse } = useCourseContext();
   const [selectedIndexes, setSelectedIndexes] = useState([]);
+  const [indexDetails, setIndexDetails] = useState({});
   const location = useLocation();
   const timetableRef = useRef(null);
 
@@ -44,15 +46,51 @@ const HomePage = () => {
     }
   };
 
+  const handleIndexChange = async (course, selectedIndexId) => {
+    console.log(course, selectedIndexId);
+    setSelectedIndexes((prev) => [
+      ...prev.filter((item) => item.courseName !== course.name),
+      {
+        courseName: course.name,
+        courseCode: course.code,
+        selectedIndexId,
+      },
+    ]);
+
+    const selectedIndex = course.indexes.find(
+      (index) => index === selectedIndexId
+    );
+    console.log(selectedIndex);
+    if (selectedIndex) {
+      // Assuming you have a function to get the timeslot details for the selected index
+      const indexDetails = await getIndexDetails(selectedIndex);
+      console.log(indexDetails);
+      if (indexDetails) {
+        setIndexDetails((prev) => ({
+          ...prev,
+          [course.code]: Array.isArray(indexDetails) ? indexDetails : [],
+        }));
+      }
+    }
+  };
+
   return (
     <div className="home-page">
-      <h1>Course Scheduler</h1>
-      <Link to="/add-courses">
-        <button>Add Courses</button>
-      </Link>
-      <Link to="/schedule-generator">
-        <button>Generate Schedule</button>
-      </Link>
+      <nav className="navbar">
+        <div className="logo-placeholder">Logo</div>
+        <div className="nav-links">
+          <Link to="/add-courses">
+            <button>Add Courses</button>
+          </Link>
+          <Link to="/schedule-generator">
+            <button>Generate Schedule</button>
+          </Link>
+          <Link to="/user-guide">
+            <button>User Guide</button>
+          </Link>
+        </div>
+      </nav>
+      <h1 class="header">Course Scheduler</h1>
       <div className="home-body" ref={timetableRef}>
         <Timetable selectedIndexes={selectedIndexes} />
         <div className="selected-courses-container">
@@ -69,16 +107,7 @@ const HomePage = () => {
                       (item) => item.courseName === course.name
                     )?.selectedIndexId || ""
                   }
-                  onChange={(e) =>
-                    setSelectedIndexes((prev) => [
-                      ...prev.filter((item) => item.courseName !== course.name),
-                      {
-                        courseName: course.name,
-                        courseCode: course.code,
-                        selectedIndexId: e.target.value,
-                      },
-                    ])
-                  }
+                  onChange={(e) => handleIndexChange(course, e.target.value)}
                 >
                   <option value="">Select Index</option>
                   {course.indexes.map((index) => (
@@ -89,6 +118,18 @@ const HomePage = () => {
                 </select>
                 &nbsp; &nbsp;
                 <button onClick={() => removeCourse(course.code)}>-</button>
+                <br></br>
+                <br></br>
+                {console.log(indexDetails[course.code])}
+                {Array.isArray(indexDetails[course.code])
+                  ? indexDetails[course.code].map((timeslot, idx) => (
+                      <span key={idx}>
+                        {timeslot.day}: {timeslot.startTime} -{" "}
+                        {timeslot.endTime}
+                        <br />
+                      </span>
+                    ))
+                  : "Index Details"}
               </div>
             ))
           ) : (

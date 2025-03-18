@@ -1,7 +1,8 @@
 .home-page {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  margin: 0;
+  font-family: Arial, sans-serif;
 }
 
 .home-header {
@@ -33,6 +34,7 @@
   display: flex;
   flex-direction: row;
   gap: 20px;
+  padding: 20px;
 }
 
 .timetable-container {
@@ -49,6 +51,7 @@
   padding: 10px;
   border-radius: 8px;
   background-color: #f9f9f9;
+  margin-top: 20px;
 }
 
 .selected-courses-container h2 {
@@ -64,11 +67,74 @@
   border: 1px solid #ccc;
 }
 
+.selected-course-item {
+  margin-bottom: 20px;
+}
+
+.selected-course-item h3 {
+  margin: 0;
+}
+
+.selected-course-item select {
+  margin-right: 10px;
+}
+
 .selected-course-item button {
   padding: 5px 10px;
-  background-color: #dc3545;
+  background-color: #f44336;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.selected-course-item button:hover {
+  background-color: #d32f2f;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  margin: 0;
+  z-index: 1000;
+}
+
+.logo-placeholder {
+  color: white;
+  font-size: 20px;
+  margin-left: 20px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 10px;
+  margin: 10px;
+}
+
+.nav-links button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  margin-right: 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.nav-links button:hover {
+  background-color: #45a049;
+}
+
+.header {
+  margin: 100px 0 0 0;
 }
