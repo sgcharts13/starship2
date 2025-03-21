@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getIndexDetails } from "../services/databaseService";
 import "../styles/timetable.css";
 
-const Timetable = ({ selectedIndexes }) => {
+const Timetable = ({ selectedIndexes, courseColors }) => {
   const [timeslots, setTimeslots] = useState([]);
 
   useEffect(() => {
@@ -128,7 +128,9 @@ const Timetable = ({ selectedIndexes }) => {
                     console.log(slot);
                     const rowSpan = calculateRowSpan(slot.start, slot.end);
                     const isClash = slot.courses.length > 1;
-                    const backgroundColor = isClash ? "red" : "#ADD8E6";
+                    const backgroundColor = isClash
+                      ? "red"
+                      : courseColors[slot.courses[0].courseCode] || "#ADD8E6";
 
                     return (
                       <td
@@ -200,7 +202,7 @@ const Timetable = ({ selectedIndexes }) => {
 
   return (
     <div className="timetable-container">
-      <h2>Timetable</h2>
+      <h2>Timetable Planner</h2>
       {renderTimetable()}
     </div>
   );

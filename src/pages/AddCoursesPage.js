@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import SelectedCoursesList from "../components/SelectedCoursesList";
 import CourseSearch from "../components/CourseSearch";
+import Navbar from "../components/Navbar"; // Import the Navbar component
 import { useCourseContext } from "../context/CourseContext";
+import "../styles/selectedCoursesList.css"; // Import the new selected courses list CSS file
 import "../styles/addCourses.css";
 
 const AddCoursesPage = () => {
@@ -19,6 +21,11 @@ const AddCoursesPage = () => {
   useEffect(() => {
     // Clear the warning when the component mounts
     setWarning("");
+
+    // Clear the warning when the component unmounts
+    return () => {
+      setWarning("");
+    };
   }, [setWarning]);
 
   const handleAddToSchedule = () => {
@@ -27,30 +34,13 @@ const AddCoursesPage = () => {
 
   return (
     <div className="add-courses-page">
-      <nav className="navbar">
-        <div className="logo-placeholder">Logo</div>
-        <div className="nav-links">
-          <Link to="/add-courses">
-            <button>Add Courses</button>
-          </Link>
-          <Link to="/schedule-generator">
-            <button>Generate Schedule</button>
-          </Link>
-          <Link to="/user-guide">
-            <button>User Guide</button>
-          </Link>
-        </div>
-      </nav>
-      <h1>Add Courses</h1>
+      <Navbar /> {/* Use the Navbar component */}
       <div className="add-courses-body">
-        <SelectedCoursesList
-          courses={selectedCourses}
-          onRemoveCourse={removeCourse}
-        />
+        <h1>Add Courses</h1>
         <CourseSearch onAddCourse={addCourse} />
       </div>
-      {warning && <div className="warning">{warning}</div>}
       <div className="add-courses-body">
+        {warning && <div className="warning">{warning}</div>}
         <button
           className="add-to-schedule-button"
           onClick={handleAddToSchedule}
@@ -61,6 +51,10 @@ const AddCoursesPage = () => {
           Reset Selections
         </button>
       </div>
+      <SelectedCoursesList
+        courses={selectedCourses}
+        onRemoveCourse={removeCourse}
+      />
     </div>
   );
 };

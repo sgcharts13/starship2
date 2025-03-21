@@ -15,6 +15,7 @@
 }
 
 .course-search input {
+  font-family: "Inter", Arial, sans-serif;
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #ccc;

@@ -1,8 +1,13 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Inter", Arial, sans-serif;
 }
 
 h1,
 h2 {
+  font-family: "Inter", Arial, sans-serif;
   text-align: center;
+}
+
+button {
+  font-family: "Inter", Arial, sans-serif;
 }
