@@ -8,7 +8,8 @@
 .add-courses-body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
   width: calc(
     100% - 490px
   ); /* Adjust width to account for the fixed navbar and selected courses list */
@@ -16,8 +17,42 @@
   margin-right: 270px; /* Adjust margin to account for the fixed selected courses list */
 }
 
-.add-to-schedule-button {
+.add-courses-button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px; /* Space between buttons */
   margin-top: 20px;
+}
+
+.add-courses-button-container button {
+  width: 300px;
+  height: auto;
+}
+
+.add-to-schedule-button,
+.reset-courses-button {
+  width: 200px; /* Set a fixed width for the buttons */
+  height: 50px; /* Set a fixed height for the buttons */
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.reset-courses-button {
+  background-color: #dc3545; /* Different background color for reset button */
+}
+
+.add-to-schedule-button:hover,
+.reset-courses-button:hover {
+  opacity: 0.8;
 }
 
 .add-courses-body button {

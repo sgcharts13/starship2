@@ -50,6 +50,10 @@ const Timetable = ({ selectedIndexes, courseColors }) => {
     return timeDiff;
   };
 
+  const getTextColor = (backgroundColor) => {
+    return "black";
+  };
+
   const renderTimetable = () => {
     const times = Array.from({ length: 28 }, (_, i) => 8 + i / 2);
     const days = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -129,8 +133,9 @@ const Timetable = ({ selectedIndexes, courseColors }) => {
                     const rowSpan = calculateRowSpan(slot.start, slot.end);
                     const isClash = slot.courses.length > 1;
                     const backgroundColor = isClash
-                      ? "red"
+                      ? "#f73959"
                       : courseColors[slot.courses[0].courseCode] || "#ADD8E6";
+                    const textColor = getTextColor(backgroundColor);
 
                     return (
                       <td
@@ -139,12 +144,12 @@ const Timetable = ({ selectedIndexes, courseColors }) => {
                         className="timeslot"
                         style={{
                           backgroundColor,
-                          color: isClash ? "white" : "black",
+                          color: textColor,
                         }}
                       >
                         <div>
                           {isClash ? (
-                            <div>
+                            <div className="clash-text">
                               <strong>CLASH:</strong>
                               <br />
                               {slot.courses.map((course, index) => (

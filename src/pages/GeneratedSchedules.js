@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getIndexDetails } from "../services/databaseService";
 import "../styles/timetable.css";
 import "../styles/generatedSchedules.css"; // Add this import for the new CSS file
+import Navbar from "../components/Navbar.js";
+import PreferenceForm from "../components/PreferenceForm"; // Import the PreferenceForm component
+import SelectedCoursesList from "../components/SelectedCoursesList";
+import "../styles/selectedCoursesList.css";
+import loadingGif from "../assets/loading.gif";
 
 const GeneratedSchedules = () => {
   const location = useLocation();
@@ -12,7 +17,21 @@ const GeneratedSchedules = () => {
   const preferences = location.state?.preferences || {};
   console.log(selectedCourses, preferences);
 
+  const initialPreferences = location.state?.preferences || {
+    days: 3,
+    startTime: "08:00",
+    endTime: "18:00",
+    breakTime: 1,
+  };
+
+  const [days, setDays] = useState(initialPreferences.days);
+  const [startTime, setStartTime] = useState(initialPreferences.startTime);
+  const [endTime, setEndTime] = useState(initialPreferences.endTime);
+  const [breakTime, setBreakTime] = useState(initialPreferences.breakTime);
   const [generatedSchedules, setGeneratedSchedules] = useState([]);
+  const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0);
+  const [isTimetableVisible, setIsTimetableVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (selectedCourses.length > 0) {
@@ -20,7 +39,30 @@ const GeneratedSchedules = () => {
     }
   }, [selectedCourses]);
 
+  const handleSubmit = () => {
+    generateSchedules();
+  };
+
+  const DisallowRemoveCourse = () => {
+    alert("Cannot remove course from this page");
+  };
+
+  const handleNextSchedule = () => {
+    if (currentScheduleIndex < generatedSchedules.length - 1) {
+      setCurrentScheduleIndex(currentScheduleIndex + 1);
+      setIsTimetableVisible(false); // Hide timetable when switching schedules
+    }
+  };
+
+  const handlePreviousSchedule = () => {
+    if (currentScheduleIndex > 0) {
+      setCurrentScheduleIndex(currentScheduleIndex - 1);
+      setIsTimetableVisible(false); // Hide timetable when switching schedules
+    }
+  };
+
   const generateSchedules = async () => {
+    setIsLoading(true);
     const populationSize = 100;
     const generations = 10;
     let population = await generateInitialPopulation(populationSize);
@@ -51,6 +93,7 @@ const GeneratedSchedules = () => {
     console.log(sortedSchedules);
 
     setGeneratedSchedules(sortedSchedules);
+    setIsLoading(false);
   };
 
   const generateInitialPopulation = async (size) => {
@@ -472,7 +515,7 @@ const GeneratedSchedules = () => {
       .split(", ")
       .map((breakTime, idx) => {
         const parsedBreakTime = parseTime(breakTime);
-        const isViolated = parsedBreakTime > constraint;
+        const isViolated = parsedBreakTime < constraint;
         return (
           <span
             key={idx}
@@ -487,144 +530,184 @@ const GeneratedSchedules = () => {
       })
       .reduce((prev, curr) => [prev, ", ", curr]);
   };
+  const currentSchedule = generatedSchedules[currentScheduleIndex];
 
   return (
     <div className="generated-schedules-page">
-      <nav className="navbar">
-        <div className="logo-placeholder">Logo</div>
-        <div className="nav-links">
-          <Link to="/add-courses">
-            <button>Add Courses</button>
-          </Link>
-          <Link to="/schedule-generator">
-            <button>Generate Schedule</button>
-          </Link>
-          <Link to="/user-guide">
-            <button>User Guide</button>
-          </Link>
-        </div>
-      </nav>
-      <h1>Generated Schedules</h1>
-      <button
-        onClick={() =>
-          navigate("/schedule-generator", {
-            state: { selectedCourses, preferences },
-          })
-        }
-      >
-        Back
-      </button>
-      <p>
-        Preferences: Days: {preferences.days}, Start: {preferences.startTime},
-        End: {preferences.endTime}, Break: {preferences.breakTime || "N/A"}
-      </p>
-      {generatedSchedules.map((scheduleObj, idx) => {
-        // Group timeslots by day for each schedule
-        const timeslotsByDay = {};
-        scheduleObj.schedule.forEach((timeslot) => {
-          if (!timeslotsByDay[timeslot.day]) {
-            timeslotsByDay[timeslot.day] = [];
+      <Navbar />
+      <div className="generated-schedules-body">
+        <PreferenceForm
+          days={days}
+          setDays={setDays}
+          startTime={startTime}
+          setStartTime={setStartTime}
+          endTime={endTime}
+          setEndTime={setEndTime}
+          breakTime={breakTime}
+          setBreakTime={setBreakTime}
+          filterStartTimeOptions={(endTime) => {
+            const times = [];
+            for (let hour = 8; hour <= 22; hour++) {
+              times.push(`${hour.toString().padStart(2, "0")}:00`);
+              times.push(`${hour.toString().padStart(2, "0")}:30`);
+            }
+            return times.filter((time) => time < endTime);
+          }}
+          filterEndTimeOptions={(startTime) => {
+            const times = [];
+            for (let hour = 8; hour <= 22; hour++) {
+              times.push(`${hour.toString().padStart(2, "0")}:00`);
+              times.push(`${hour.toString().padStart(2, "0")}:30`);
+            }
+            return times.filter((time) => time > startTime);
+          }}
+          handleSubmit={handleSubmit}
+          buttonText="Change Course Selections"
+          buttonHandler={() =>
+            navigate("/schedule-generator", {
+              state: { selectedCourses, preferences },
+            })
           }
-          timeslotsByDay[timeslot.day].push(timeslot);
-        });
-
-        return (
-          <div key={idx} className="schedule-option">
-            <h2>Timetable {scheduleObj.timetableNumber}</h2>
-            <p>
-              Days: {scheduleObj.days}, Start Time: {scheduleObj.avgStartTime},
-              End Time: {scheduleObj.avgEndTime}, Avg Break Time:{" "}
-              {scheduleObj.avgBreakTime}, Score: {scheduleObj.score}
-            </p>
-            <p>
-              {scheduleObj.schedule.map((entry, idx) => (
-                <span key={idx}>
-                  {entry.courseCode} - {entry.day}, {entry.startTime} -{" "}
-                  {entry.endTime}
-                  <br></br>
-                </span>
-              ))}
-            </p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Day</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>Break Time(s)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dayOrder
-                  .filter((day) => timeslotsByDay[day])
-                  .map((day) => {
-                    const timeslots = timeslotsByDay[day];
-                    const startTime = Math.min(
-                      ...timeslots.map((slot) => parseTime(slot.startTime))
-                    );
-                    const endTime = Math.max(
-                      ...timeslots.map((slot) => parseTime(slot.endTime))
-                    );
-                    const breakTimes = getBreakTimes(timeslots);
-
-                    return (
-                      <tr key={day}>
-                        <td>{day}</td>
-                        <td
-                          style={{
-                            color: isConstraintViolated(
-                              startTime,
-                              preferences.startTime,
-                              "startTime"
-                            )
-                              ? "red"
-                              : "inherit",
-                            fontWeight: isConstraintViolated(
-                              startTime,
-                              preferences.startTime,
-                              "startTime"
-                            )
-                              ? "bold"
-                              : "normal",
-                          }}
-                        >
-                          {formatTime(startTime)}
-                        </td>
-                        <td
-                          style={{
-                            color: isConstraintViolated(
-                              endTime,
-                              preferences.endTime,
-                              "endTime"
-                            )
-                              ? "red"
-                              : "inherit",
-                            fontWeight: isConstraintViolated(
-                              endTime,
-                              preferences.endTime,
-                              "endTime"
-                            )
-                              ? "bold"
-                              : "normal",
-                          }}
-                        >
-                          {formatTime(endTime)}
-                        </td>
-                        <td>
-                          {formatBreakTimes(breakTimes, preferences.breakTime)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-            {renderTimetable(scheduleObj.schedule)}
-            <button onClick={() => handleAddToTimetable(scheduleObj.schedule)}>
-              Add to Timetable
-            </button>
+        />
+        <h1>Generated Schedules</h1>
+        {isLoading ? (
+          <div className="loading-container">
+            <img src={loadingGif} alt="Loading..." className="loading-gif" />
+            <p>Loading schedules, please wait...</p>
           </div>
-        );
-      })}
+        ) : (
+          currentSchedule && (
+            <div className="carousel-container">
+              {currentScheduleIndex > 0 && (
+                <button
+                  className="carousel-arrow left-arrow"
+                  onClick={handlePreviousSchedule}
+                >
+                  &lt;
+                </button>
+              )}
+              <div className="schedule-option">
+                <h2>Timetable {currentSchedule.timetableNumber}</h2>
+                <p>
+                  Days: {currentSchedule.days}, Start Time:{" "}
+                  {currentSchedule.avgStartTime}, End Time:{" "}
+                  {currentSchedule.avgEndTime}, Avg Break Time:{" "}
+                  {currentSchedule.avgBreakTime}, Score: {currentSchedule.score}
+                </p>
+                <table className="generated-schedule-day-table">
+                  <thead>
+                    <tr>
+                      <th>Day</th>
+                      <th>Start Time</th>
+                      <th>End Time</th>
+                      <th>Break Time(s)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dayOrder
+                      .filter((day) =>
+                        currentSchedule.schedule.some(
+                          (slot) => slot.day === day
+                        )
+                      )
+                      .map((day) => {
+                        const timeslots = currentSchedule.schedule.filter(
+                          (slot) => slot.day === day
+                        );
+                        const startTime = Math.min(
+                          ...timeslots.map((slot) => parseTime(slot.startTime))
+                        );
+                        const endTime = Math.max(
+                          ...timeslots.map((slot) => parseTime(slot.endTime))
+                        );
+                        const breakTimes = getBreakTimes(timeslots);
+
+                        return (
+                          <tr key={day}>
+                            <td>{day}</td>
+                            <td
+                              style={{
+                                color: isConstraintViolated(
+                                  startTime,
+                                  preferences.startTime,
+                                  "startTime"
+                                )
+                                  ? "red"
+                                  : "inherit",
+                                fontWeight: isConstraintViolated(
+                                  startTime,
+                                  preferences.startTime,
+                                  "startTime"
+                                )
+                                  ? "bold"
+                                  : "normal",
+                              }}
+                            >
+                              {formatTime(startTime)}
+                            </td>
+                            <td
+                              style={{
+                                color: isConstraintViolated(
+                                  endTime,
+                                  preferences.endTime,
+                                  "endTime"
+                                )
+                                  ? "red"
+                                  : "inherit",
+                                fontWeight: isConstraintViolated(
+                                  endTime,
+                                  preferences.endTime,
+                                  "endTime"
+                                )
+                                  ? "bold"
+                                  : "normal",
+                              }}
+                            >
+                              {formatTime(endTime)}
+                            </td>
+                            <td>
+                              {formatBreakTimes(
+                                breakTimes,
+                                preferences.breakTime
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+                <button
+                  className="timetable-hide"
+                  onClick={() => handleAddToTimetable(currentSchedule.schedule)}
+                >
+                  Add to Timetable
+                </button>
+                <button
+                  className="timetable-hide"
+                  onClick={() => setIsTimetableVisible(!isTimetableVisible)}
+                >
+                  {isTimetableVisible ? "Hide Timetable" : "View Timetable"}
+                </button>
+                {isTimetableVisible &&
+                  renderTimetable(currentSchedule.schedule)}
+              </div>
+              {currentScheduleIndex < generatedSchedules.length - 1 && (
+                <button
+                  className="carousel-arrow right-arrow"
+                  onClick={handleNextSchedule}
+                >
+                  &gt;
+                </button>
+              )}
+            </div>
+          )
+        )}
+      </div>
+      <SelectedCoursesList
+        courses={selectedCourses}
+        onRemoveCourse={DisallowRemoveCourse}
+        hideRemoveButton={true} // Add this prop to hide the minus buttons
+      />
     </div>
   );
 };

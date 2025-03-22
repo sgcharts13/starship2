@@ -25,6 +25,7 @@ const CourseSearch = ({ onAddCourse }) => {
 
   return (
     <div className="course-search">
+      <h2>Course Search</h2>
       <input
         type="text"
         placeholder="Search for course code or name"

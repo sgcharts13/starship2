@@ -2,26 +2,30 @@
 import React from "react";
 import "../styles/selectedCoursesList.css";
 
-const SelectedCoursesList = ({ courses, onRemoveCourse }) => {
+const SelectedCoursesList = ({ courses, onRemoveCourse, hideRemoveButton }) => {
   return (
     <div className="selected-courses-container">
       <h2>Selected Courses</h2>
       {courses.length === 0 ? (
-        <p>No courses selected</p>
+        <p className="none">No courses selected</p>
       ) : (
         <div className="selected-courses-grid">
           {courses.map((course) => (
             <div key={course.code} className="selected-course-item">
               <div className="course-details">
                 <p>
-                  {course.code} {course.name}
+                  <b>
+                    {course.code} {course.name}
+                  </b>
                 </p>
-                <button
-                  className="minus-button"
-                  onClick={() => onRemoveCourse(course.code)}
-                >
-                  -
-                </button>
+                {!hideRemoveButton && (
+                  <button
+                    className="minus-button"
+                    onClick={() => onRemoveCourse(course.code)}
+                  >
+                    -
+                  </button>
+                )}
               </div>
             </div>
           ))}

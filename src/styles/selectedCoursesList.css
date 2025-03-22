@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background-color: #483b48;
+  background-color: #a9c1d1;
   position: fixed;
   top: 0;
   right: 0;
@@ -16,7 +16,7 @@
 }
 
 .selected-courses-container h2 {
-  color: white;
+  color: black;
   margin-bottom: 20px;
 }
 
@@ -24,19 +24,25 @@
   color: black;
 }
 
+.none {
+  color: white !important;
+}
+
 .selected-courses-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
   width: 100%;
+  margin-bottom: 50px;
 }
 
 .selected-course-item {
-  background-color: #444;
+  background-color: white;
   padding: 10px;
   border-radius: 8px;
   color: white;
   align-items: center;
+  width: calc(100% - 20px);
 }
 
 .selected-course-item h3 {
@@ -59,7 +65,7 @@
 
 .selected-courses-container .minus-button {
   padding: 5px 10px;
-  background-color: red;
+  background-color: #007bff;
   color: white;
   cursor: pointer;
   width: 28.4px;
@@ -81,6 +87,7 @@
   padding: 10px 20px;
   text-align: center;
   text-decoration: none;
+  align-items: center;
   display: inline-block;
   font-size: 16px;
   margin: 4px 0;
@@ -94,5 +101,5 @@
 }
 
 .minus-button:hover {
-  background-color: lightcoral !important;
+  background-color: lightblue !important;
 }

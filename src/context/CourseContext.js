@@ -1,42 +1,48 @@
 import React, { createContext, useContext, useState } from "react";
 
-// Create the context
 const CourseContext = createContext();
 
-// Create a custom hook to access the context
-export const useCourseContext = () => {
-  const context = useContext(CourseContext);
-  if (!context) {
-    throw new Error("useCourseContext must be used within a CourseProvider");
-  }
-  return context;
-};
+export const useCourseContext = () => useContext(CourseContext);
 
-// Create a provider component
 export const CourseProvider = ({ children }) => {
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [courseColors, setCourseColors] = useState({});
   const [warning, setWarning] = useState("");
 
-  const addCourse = (course) => {
-    setSelectedCourses((prev) => {
-      // Check if the course already exists in the list
-      if (prev.some((c) => c.id === course.id)) {
-        setWarning(`The course ${course.code} has already been added.`);
-        return prev; // Return the previous list if the course already exists
-      }
-      setWarning(""); // Clear the warning if the course is added successfully
-      return [...prev, course]; // Add the course to the list if it doesn't exist
-    });
+  const generateRandomColor = () => {
+    const hue = Math.floor(Math.random() * 360);
+    const saturation = 30;
+    const lightness = 74;
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   };
 
-  const removeCourse = (courseId) => {
-    setSelectedCourses((prev) =>
-      prev.filter((course) => course.id !== courseId)
+  const addCourse = (course) => {
+    if (selectedCourses.some((c) => c.code === course.code)) {
+      setWarning(`Course ${course.code} is already added.`);
+      return;
+    }
+    setSelectedCourses((prevCourses) => [...prevCourses, course]);
+    setCourseColors((prevColors) => ({
+      ...prevColors,
+      [course.code]: generateRandomColor(),
+    }));
+    setWarning(""); // Clear the warning if the course is added successfully
+  };
+
+  const removeCourse = (courseCode) => {
+    setSelectedCourses((prevCourses) =>
+      prevCourses.filter((course) => course.code !== courseCode)
     );
+    setCourseColors((prevColors) => {
+      const newColors = { ...prevColors };
+      delete newColors[courseCode];
+      return newColors;
+    });
   };
 
   const resetCourses = () => {
     setSelectedCourses([]);
+    setCourseColors({});
   };
 
   return (
@@ -47,7 +53,9 @@ export const CourseProvider = ({ children }) => {
         removeCourse,
         resetCourses,
         warning,
-        setWarning, // Include setWarning in the context value
+        setWarning,
+        courseColors,
+        setCourseColors,
       }}
     >
       {children}

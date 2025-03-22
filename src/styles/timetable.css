@@ -4,15 +4,26 @@
   text-align: center;
 }
 
-.timetable th,
-.timetable td {
+.timetable th:nth-child(n + 2),
+.timetable td:nth-child(n + 2) {
   border: 1px solid #ccc;
   padding: 10px;
-  width: 100px;
+  width: 120px !important;
+}
+
+.timetable th:nth-child(1),
+.timetable td:nth-child(1) {
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 50px;
 }
 
 .timetable .timeslot {
   background-color: #add8e6;
   color: #000;
   font-size: 12px;
+}
+
+.clash-text {
+  color: white;
 }

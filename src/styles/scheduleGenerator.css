@@ -10,6 +10,9 @@
   ); /* Adjust width to account for the fixed navbar and selected courses list */
   margin-left: 220px; /* Adjust margin to account for the fixed navbar */
   margin-right: 270px; /* Adjust margin to account for the fixed selected courses list */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .schedule-generator-page {
@@ -17,8 +20,52 @@
   padding: 20px;
 }
 
+.preferences-box {
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  width: 80%;
+  max-width: 800px;
+  margin: 20px 0;
+}
+
 .preferences {
   display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.preferences label {
+  display: flex;
   flex-direction: column;
-  padding: 20px;
+  align-items: center;
+  width: 170px; /* Set a fixed width for each label */
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.buttons button {
+  width: 45%;
+  height: 40px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+.buttons button:hover {
+  background-color: #0056b3;
+}
+
+select,
+option {
+  font-family: "Inter", Arial, sans-serif;
 }

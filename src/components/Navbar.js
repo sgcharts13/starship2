@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import starshipLogo from "../images/STARSHIP.png";
+import starshipLogo from "../assets/STARSHIP.png";
 import "../styles/navbar.css"; // Import the navbar CSS file
+import extLinks from "../assets/ext_links.png";
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -38,28 +39,40 @@ const Navbar = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <button>View STARS Planner</button>
+              <button>
+                STARS Planner&nbsp;&nbsp;
+                <img src={extLinks} alt="ext-link" width="10" height="10"></img>
+              </button>
             </a>
             <a
               href="https://wish.wis.ntu.edu.sg/pls/webexe/ldap_login.login?w_url=https://wish.wis.ntu.edu.sg/pls/webexe/dars_result_ro.main_display"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <button>View Degree Audit</button>
+              <button>
+                Degree Audit&nbsp;&nbsp;
+                <img src={extLinks} alt="ext-link" width="10" height="10"></img>
+              </button>
             </a>
             <a
               href="https://wish.wis.ntu.edu.sg/webexe/owa/aus_schedule.main"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <button>View Class Schedule</button>
+              <button>
+                Class Schedule&nbsp;&nbsp;
+                <img src={extLinks} alt="ext-link" width="10" height="10"></img>
+              </button>
             </a>
             <a
               href="https://wis.ntu.edu.sg/webexe/owa/aus_subj_cont.main"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <button>View Course Content</button>
+              <button>
+                Course Content&nbsp;&nbsp;
+                <img src={extLinks} alt="ext-link" width="10" height="10"></img>
+              </button>
             </a>
           </div>
         )}

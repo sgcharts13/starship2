@@ -7,6 +7,7 @@ import "../styles/selectedCoursesList.css"; // Import the new selected courses
 import SelectedCoursesList from "../components/SelectedCoursesList";
 import CourseSearch from "../components/CourseSearch";
 import Navbar from "../components/Navbar";
+import PreferenceForm from "../components/PreferenceForm"; // Import the PreferenceForm component
 
 const ScheduleGenerator = () => {
   const {
@@ -56,6 +57,25 @@ const ScheduleGenerator = () => {
     });
   };
 
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let hour = 8; hour <= 22; hour++) {
+      times.push(`${hour.toString().padStart(2, "0")}:00`);
+      times.push(`${hour.toString().padStart(2, "0")}:30`);
+    }
+    return times;
+  };
+
+  const filterEndTimeOptions = (startTime) => {
+    const times = generateTimeOptions();
+    return times.filter((time) => time > startTime);
+  };
+
+  const filterStartTimeOptions = (endTime) => {
+    const times = generateTimeOptions();
+    return times.filter((time) => time < endTime);
+  };
+
   return (
     <div className="schedule-generator-page">
       <Navbar />
@@ -74,58 +94,21 @@ const ScheduleGenerator = () => {
             {error}
           </div>
         )}
-        <div className="preferences">
-          <h2>Set Preferences</h2>
-          <label>
-            Days in Week: {days}
-            <input
-              type="range"
-              min="1"
-              max="5"
-              value={days}
-              onChange={(e) => setDays(e.target.value)}
-            />
-          </label>
-          <br />
-          <br />
-          <label>
-            Start Time:
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
-          </label>
-          <br />
-          <br />
-          <label>
-            End Time:
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
-          </label>
-          <br />
-          <br />
-          <label>
-            Average Break Time: {breakTime}h
-            <input
-              type="range"
-              min="0.5"
-              max="3"
-              step="0.5"
-              value={breakTime}
-              onChange={(e) => setBreakTime(e.target.value)}
-            />
-          </label>
-          <br />
-          <br />
-          <button onClick={handleSubmit}>Generate Schedule</button>
-          <button className="reset-courses-button" onClick={resetCourses}>
-            Reset Selections
-          </button>
-        </div>
+        <PreferenceForm
+          days={days}
+          setDays={setDays}
+          startTime={startTime}
+          setStartTime={setStartTime}
+          endTime={endTime}
+          setEndTime={setEndTime}
+          breakTime={breakTime}
+          setBreakTime={setBreakTime}
+          filterStartTimeOptions={filterStartTimeOptions}
+          filterEndTimeOptions={filterEndTimeOptions}
+          handleSubmit={handleSubmit}
+          buttonText="Reset Course Selections"
+          buttonHandler={resetCourses}
+        />
         <SelectedCoursesList
           courses={selectedCourses}
           onRemoveCourse={removeCourse}
