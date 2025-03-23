@@ -40,6 +40,7 @@ const GeneratedSchedules = () => {
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0);
   const [isTimetableVisible, setIsTimetableVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [viewMode, setViewMode] = useState("courseview"); // State to manage view mode
 
   useEffect(() => {
     if (selectedCourses.length > 0) {
@@ -163,7 +164,117 @@ const GeneratedSchedules = () => {
       })
       .reduce((prev, curr) => [prev, ", ", curr]);
   };
+
   const currentSchedule = generatedSchedules[currentScheduleIndex];
+
+  const renderDayView = () => (
+    <table className="generated-schedule-day-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Break Time(s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {dayOrder
+          .filter((day) =>
+            currentSchedule.schedule.some((slot) => slot.day === day)
+          )
+          .map((day) => {
+            const timeslots = currentSchedule.schedule.filter(
+              (slot) => slot.day === day
+            );
+            const startTime = Math.min(
+              ...timeslots.map((slot) => parseTime(slot.startTime))
+            );
+            const endTime = Math.max(
+              ...timeslots.map((slot) => parseTime(slot.endTime))
+            );
+            const breakTimes = getBreakTimes(timeslots);
+
+            return (
+              <tr key={day}>
+                <td>{day}</td>
+                <td
+                  style={{
+                    color: isConstraintViolated(
+                      startTime,
+                      preferences.startTime,
+                      "startTime"
+                    )
+                      ? "red"
+                      : "inherit",
+                    fontWeight: isConstraintViolated(
+                      startTime,
+                      preferences.startTime,
+                      "startTime"
+                    )
+                      ? "bold"
+                      : "normal",
+                  }}
+                >
+                  {formatTime(startTime)}
+                </td>
+                <td
+                  style={{
+                    color: isConstraintViolated(
+                      endTime,
+                      preferences.endTime,
+                      "endTime"
+                    )
+                      ? "red"
+                      : "inherit",
+                    fontWeight: isConstraintViolated(
+                      endTime,
+                      preferences.endTime,
+                      "endTime"
+                    )
+                      ? "bold"
+                      : "normal",
+                  }}
+                >
+                  {formatTime(endTime)}
+                </td>
+                <td>{formatBreakTimes(breakTimes, preferences.breakTime)}</td>
+              </tr>
+            );
+          })}
+      </tbody>
+    </table>
+  );
+
+  const renderCourseView = () => (
+    <table className="generated-schedule-course-table">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Timeslot(s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {selectedCourses.map((course) => {
+          const timeslots = currentSchedule.schedule
+            .filter((slot) => slot.courseCode === course.code)
+            .map(
+              (slot) =>
+                `${slot.day} ${slot.startTime.slice(
+                  0,
+                  -3
+                )} - ${slot.endTime.slice(0, -3)}`
+            )
+            .join(", ");
+          return (
+            <tr key={course.code}>
+              <td>{course.code}</td>
+              <td>{timeslots}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
 
   return (
     <div className="generated-schedules-page">
@@ -229,88 +340,25 @@ const GeneratedSchedules = () => {
                   {currentSchedule.avgEndTime}, Avg Break Time:{" "}
                   {currentSchedule.avgBreakTime}, Score: {currentSchedule.score}
                 </p>
-                <table className="generated-schedule-day-table">
-                  <thead>
-                    <tr>
-                      <th>Day</th>
-                      <th>Start Time</th>
-                      <th>End Time</th>
-                      <th>Break Time(s)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dayOrder
-                      .filter((day) =>
-                        currentSchedule.schedule.some(
-                          (slot) => slot.day === day
-                        )
-                      )
-                      .map((day) => {
-                        const timeslots = currentSchedule.schedule.filter(
-                          (slot) => slot.day === day
-                        );
-                        const startTime = Math.min(
-                          ...timeslots.map((slot) => parseTime(slot.startTime))
-                        );
-                        const endTime = Math.max(
-                          ...timeslots.map((slot) => parseTime(slot.endTime))
-                        );
-                        const breakTimes = getBreakTimes(timeslots);
-
-                        return (
-                          <tr key={day}>
-                            <td>{day}</td>
-                            <td
-                              style={{
-                                color: isConstraintViolated(
-                                  startTime,
-                                  preferences.startTime,
-                                  "startTime"
-                                )
-                                  ? "red"
-                                  : "inherit",
-                                fontWeight: isConstraintViolated(
-                                  startTime,
-                                  preferences.startTime,
-                                  "startTime"
-                                )
-                                  ? "bold"
-                                  : "normal",
-                              }}
-                            >
-                              {formatTime(startTime)}
-                            </td>
-                            <td
-                              style={{
-                                color: isConstraintViolated(
-                                  endTime,
-                                  preferences.endTime,
-                                  "endTime"
-                                )
-                                  ? "red"
-                                  : "inherit",
-                                fontWeight: isConstraintViolated(
-                                  endTime,
-                                  preferences.endTime,
-                                  "endTime"
-                                )
-                                  ? "bold"
-                                  : "normal",
-                              }}
-                            >
-                              {formatTime(endTime)}
-                            </td>
-                            <td>
-                              {formatBreakTimes(
-                                breakTimes,
-                                preferences.breakTime
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
+                <div className="view-buttons">
+                  <button
+                    className={`view-button ${
+                      viewMode === "dayview" ? "active" : ""
+                    }`}
+                    onClick={() => setViewMode("dayview")}
+                  >
+                    View Days
+                  </button>
+                  <button
+                    className={`view-button ${
+                      viewMode === "courseview" ? "active" : ""
+                    }`}
+                    onClick={() => setViewMode("courseview")}
+                  >
+                    View Courses
+                  </button>
+                </div>
+                {viewMode === "dayview" ? renderDayView() : renderCourseView()}
                 <button
                   className="timetable-hide"
                   onClick={() => handleAddToTimetable(currentSchedule.schedule)}
