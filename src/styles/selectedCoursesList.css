@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background-color: #a9c1d1;
+  background-color: #c8e2f4;
   position: fixed;
   top: 0;
   right: 0;
@@ -25,7 +25,7 @@
 }
 
 .none {
-  color: white !important;
+  color: black !important;
 }
 
 .selected-courses-grid {

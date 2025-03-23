@@ -15,19 +15,37 @@ const PreferenceForm = ({
   handleSubmit,
   buttonText,
   buttonHandler,
+  selectedPreferences,
+  setSelectedPreferences,
 }) => {
+  const handleCheckboxChange = (preference) => {
+    setSelectedPreferences((prev) => ({
+      ...prev,
+      [preference]: !prev[preference],
+    }));
+  };
+
   return (
     <div className="preferences-box">
       <h2>Set Preferences</h2>
+      <p>
+        <i>Tick the checkboxes to assign higher priority.</i>
+      </p>
       <div className="preferences">
         <label>
-          Days in Week: {days}
+          Days in Week:<br></br>
+          {days} day(s)
           <input
             type="range"
             min="1"
             max="5"
             value={days}
             onChange={(e) => setDays(e.target.value)}
+          />
+          <input
+            type="checkbox"
+            checked={selectedPreferences?.days || false}
+            onChange={() => handleCheckboxChange("days")}
           />
         </label>
         <label>
@@ -42,6 +60,11 @@ const PreferenceForm = ({
               </option>
             ))}
           </select>
+          <input
+            type="checkbox"
+            checked={selectedPreferences?.startTime || false}
+            onChange={() => handleCheckboxChange("startTime")}
+          />
         </label>
         <label>
           End Time:
@@ -52,6 +75,11 @@ const PreferenceForm = ({
               </option>
             ))}
           </select>
+          <input
+            type="checkbox"
+            checked={selectedPreferences?.endTime || false}
+            onChange={() => handleCheckboxChange("endTime")}
+          />
         </label>
         <label>
           Average Break Time: {breakTime}h
@@ -62,6 +90,11 @@ const PreferenceForm = ({
             step="0.5"
             value={breakTime}
             onChange={(e) => setBreakTime(e.target.value)}
+          />
+          <input
+            type="checkbox"
+            checked={selectedPreferences?.breakTime || false}
+            onChange={() => handleCheckboxChange("breakTime")}
           />
         </label>
       </div>

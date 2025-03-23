@@ -8,22 +8,52 @@ const Timetable = ({ selectedIndexes, courseColors }) => {
   useEffect(() => {
     const fetchTimeslots = async () => {
       const newTimeslots = [];
-      for (const {
-        courseName,
-        courseCode,
-        selectedIndexId,
-      } of selectedIndexes) {
-        console.log(courseName, courseCode, selectedIndexId);
-        const indexDetails = await getIndexDetails(selectedIndexId);
-        if (indexDetails) {
-          const courseSlots = indexDetails.timeslots.map((slot) => ({
-            ...slot,
+      const processedIndexes = new Set();
+      console.log(selectedIndexes);
+      if (selectedIndexes === undefined) {
+        selectedIndexes[0].selectedIndexId = undefined;
+      }
+      if (selectedIndexes[0].selectedIndexId !== undefined) {
+        for (const {
+          courseName,
+          courseCode,
+          selectedIndexId,
+        } of selectedIndexes) {
+          console.log(
             courseName,
             courseCode,
-          }));
-          newTimeslots.push(...courseSlots);
+            "selectedIndexId",
+            selectedIndexId
+          );
+          const indexDetails = await getIndexDetails(selectedIndexId);
+          if (indexDetails) {
+            const courseSlots = indexDetails.timeslots.map((slot) => ({
+              ...slot,
+              courseName,
+              courseCode,
+            }));
+            newTimeslots.push(...courseSlots);
+          }
+        }
+      } else {
+        for (const { courseName, courseCode, courseIndex } of selectedIndexes) {
+          if (processedIndexes.has(courseIndex)) {
+            continue; // Skip duplicate courseIndex values
+          }
+          processedIndexes.add(courseIndex); // Add courseIndex to the set
+          console.log(courseName, courseCode, courseIndex);
+          const indexDetails = await getIndexDetails(courseIndex);
+          if (indexDetails) {
+            const courseSlots = indexDetails.timeslots.map((slot) => ({
+              ...slot,
+              courseName,
+              courseCode,
+            }));
+            newTimeslots.push(...courseSlots);
+          }
         }
       }
+      console.log(newTimeslots);
       setTimeslots(newTimeslots);
     };
 

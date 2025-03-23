@@ -44,6 +44,12 @@ const ScheduleGenerator = () => {
   const [endTime, setEndTime] = useState(initialPreferences.endTime);
   const [breakTime, setBreakTime] = useState(initialPreferences.breakTime);
   const [error, setError] = useState(""); // State for managing error message
+  const [selectedPreferences, setSelectedPreferences] = useState({
+    days: false,
+    startTime: false,
+    endTime: false,
+    breakTime: false,
+  });
 
   const handleSubmit = () => {
     if (selectedCourses.length < 2) {
@@ -53,7 +59,7 @@ const ScheduleGenerator = () => {
     setError(""); // Clear the error if the condition is met
     const preferences = { days, startTime, endTime, breakTime };
     navigate("/generated-schedules", {
-      state: { selectedCourses, preferences },
+      state: { selectedCourses, preferences, selectedPreferences },
     });
   };
 
@@ -108,6 +114,8 @@ const ScheduleGenerator = () => {
           handleSubmit={handleSubmit}
           buttonText="Reset Course Selections"
           buttonHandler={resetCourses}
+          selectedPreferences={selectedPreferences}
+          setSelectedPreferences={setSelectedPreferences}
         />
         <SelectedCoursesList
           courses={selectedCourses}
