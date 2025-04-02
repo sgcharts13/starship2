@@ -369,7 +369,7 @@ const OptimiserTest = async (
   XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
   XLSX.writeFile(workbook, "Optimiser_Test_Results_2.xlsx");
 
-  return sortedSchedules;
+  return;
 };
 
 export default OptimiserTest;
