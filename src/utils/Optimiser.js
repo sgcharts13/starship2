@@ -261,64 +261,64 @@ const getUniqueSchedules = (population) => {
   return uniqueSchedules;
 };
 
-const calculateEarliestTime = (schedule, timeField) => {
-  const times = schedule
-    .map((entry) => parseTime(entry[timeField]))
-    .filter((time) => time > 0);
+// const calculateEarliestTime = (schedule, timeField) => {
+//   const times = schedule
+//     .map((entry) => parseTime(entry[timeField]))
+//     .filter((time) => time > 0);
 
-  return times.length ? Math.min(...times).toFixed(2) : "N/A";
-};
+//   return times.length ? Math.min(...times).toFixed(2) : "N/A";
+// };
 
-const calculateLatestTime = (schedule, timeField) => {
-  const times = schedule
-    .map((entry) => parseTime(entry[timeField]))
-    .filter((time) => time > 0);
+// const calculateLatestTime = (schedule, timeField) => {
+//   const times = schedule
+//     .map((entry) => parseTime(entry[timeField]))
+//     .filter((time) => time > 0);
 
-  return times.length ? Math.max(...times).toFixed(2) : "N/A";
-};
+//   return times.length ? Math.max(...times).toFixed(2) : "N/A";
+// };
 
-const calculateAverageBreakTime = (schedule) => {
-  // Group timeslots by day
-  const timeslotsByDay = {};
-  schedule.forEach((timeslot) => {
-    if (!timeslotsByDay[timeslot.day]) {
-      timeslotsByDay[timeslot.day] = [];
-    }
-    timeslotsByDay[timeslot.day].push(timeslot);
-  });
+// const calculateAverageBreakTime = (schedule) => {
+//   // Group timeslots by day
+//   const timeslotsByDay = {};
+//   schedule.forEach((timeslot) => {
+//     if (!timeslotsByDay[timeslot.day]) {
+//       timeslotsByDay[timeslot.day] = [];
+//     }
+//     timeslotsByDay[timeslot.day].push(timeslot);
+//   });
 
-  let breaks = [];
-  for (const day in timeslotsByDay) {
-    const timeslots = timeslotsByDay[day];
-    if (timeslots.length > 1) {
-      // Sort the timeslots by start time
-      const sortedTimeslots = timeslots.sort(
-        (a, b) => parseTime(a.startTime) - parseTime(b.startTime)
-      );
+//   let breaks = [];
+//   for (const day in timeslotsByDay) {
+//     const timeslots = timeslotsByDay[day];
+//     if (timeslots.length > 1) {
+//       // Sort the timeslots by start time
+//       const sortedTimeslots = timeslots.sort(
+//         (a, b) => parseTime(a.startTime) - parseTime(b.startTime)
+//       );
 
-      // Calculate break durations for the day
-      for (let i = 1; i < sortedTimeslots.length; i++) {
-        const previousEndTime = parseTime(sortedTimeslots[i - 1].endTime);
-        const currentStartTime = parseTime(sortedTimeslots[i].startTime);
-        breaks.push(currentStartTime - previousEndTime);
-      }
-    }
-  }
+//       // Calculate break durations for the day
+//       for (let i = 1; i < sortedTimeslots.length; i++) {
+//         const previousEndTime = parseTime(sortedTimeslots[i - 1].endTime);
+//         const currentStartTime = parseTime(sortedTimeslots[i].startTime);
+//         breaks.push(currentStartTime - previousEndTime);
+//       }
+//     }
+//   }
 
-  return breaks.length
-    ? (breaks.reduce((a, b) => a + b, 0) / breaks.length).toFixed(2)
-    : "N/A";
-};
+//   return breaks.length
+//     ? (breaks.reduce((a, b) => a + b, 0) / breaks.length).toFixed(2)
+//     : "N/A";
+// };
 
-const formatTime = (decimalTime) => {
-  if (decimalTime === "N/A") return "N/A";
-  const hours = Math.floor(decimalTime);
-  const minutes = Math.round((decimalTime - hours) * 60);
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-    2,
-    "0"
-  )}`;
-};
+// const formatTime = (decimalTime) => {
+//   if (decimalTime === "N/A") return "N/A";
+//   const hours = Math.floor(decimalTime);
+//   const minutes = Math.round((decimalTime - hours) * 60);
+//   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+//     2,
+//     "0"
+//   )}`;
+// };
 
 const Optimiser = async (selectedCourses, preferences, selectedPreferences) => {
   const populationSize = 160;

@@ -36,12 +36,19 @@ const HomePage = () => {
       const clone = timetableRef.current.cloneNode(true);
       clone.style.width = `${timetableRef.current.scrollWidth}px`;
       clone.style.height = `${timetableRef.current.scrollHeight}px`;
+
+      // Apply scaling to shrink the content to half its size
+      clone.style.transform = "scale(0.5)";
+      clone.style.transformOrigin = "top left";
+      clone.style.width = `${timetableRef.current.scrollWidth * 2}px`;
+      clone.style.height = `${timetableRef.current.scrollHeight * 2}px`;
+
       document.body.appendChild(clone);
 
       toPng(clone, {
         cacheBust: true,
-        width: clone.scrollWidth,
-        height: clone.scrollHeight,
+        width: clone.scrollWidth / 2,
+        height: clone.scrollHeight / 2,
       })
         .then((dataUrl) => {
           timetableRef.current.style.backgroundColor = originalBackgroundColor;
