@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Optimiser from "../utils/Optimiser";
+import Optimiser from "../utils/Optimiser_Test.js";
 import "../styles/timetable.css";
 import "../styles/generatedSchedules.css"; // Add this import for the new CSS file
 import Navbar from "../components/Navbar.js";
@@ -334,12 +334,7 @@ const GeneratedSchedules = () => {
               )}
               <div className="schedule-option">
                 <h2>Timetable {currentSchedule.timetableNumber}</h2>
-                <p>
-                  Days: {currentSchedule.days}, Start Time:{" "}
-                  {currentSchedule.avgStartTime}, End Time:{" "}
-                  {currentSchedule.avgEndTime}, Avg Break Time:{" "}
-                  {currentSchedule.avgBreakTime}, Score: {currentSchedule.score}
-                </p>
+                <p>Score: {currentSchedule.score}</p>
                 <div className="view-buttons">
                   <button
                     className={`view-button ${

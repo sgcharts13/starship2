@@ -346,12 +346,6 @@ const Optimiser = async (selectedCourses, preferences, selectedPreferences) => {
     .slice(0, 3) // Select the first three schedules
     .map((schedule, index) => ({
       schedule: schedule.schedule,
-      avgStartTime: formatTime(
-        calculateEarliestTime(schedule.schedule, "startTime")
-      ),
-      avgEndTime: formatTime(calculateLatestTime(schedule.schedule, "endTime")),
-      avgBreakTime: formatTime(calculateAverageBreakTime(schedule.schedule)),
-      days: new Set(schedule.schedule.map((entry) => entry.day)).size,
       score: schedule.fitness, // Include the score
       timetableNumber: index + 1, // Add timetable number
     }));
