@@ -1,4 +1,8 @@
 import { getIndexDetails } from "../services/databaseService";
+import * as XLSX from "xlsx";
+
+const generations_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const populationSize_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
 
 const generateInitialPopulation = async (
   size,
@@ -10,7 +14,7 @@ const generateInitialPopulation = async (
   for (let i = 0; i < size; i++) {
     const schedule = await createRandomSchedule(selectedCourses);
     const fitness = evaluateFitness(schedule, preferences, selectedPreferences);
-    if (schedule.length > 0 && fitness >= 0) {
+    if (schedule.length > 0 && fitness > 0) {
       population.push({ schedule, fitness });
     }
   }
@@ -25,7 +29,7 @@ const createRandomSchedule = async (selectedCourses) => {
       const randomIndex = Math.floor(Math.random() * course.indexes.length);
       const chosenIndex = course.indexes[randomIndex];
       const indexDetails = await getIndexDetails(chosenIndex);
-      console.log(chosenIndex, indexDetails);
+      //console.log(chosenIndex, indexDetails);
 
       if (
         !indexDetails ||
@@ -79,6 +83,7 @@ const evaluateFitness = (schedule, preferences, selectedPreferences) => {
       if (
         parseTime(timeslots[i].startTime) < parseTime(timeslots[i - 1].endTime)
       ) {
+        // Overlapping timeslots detected
         return 1000;
       }
     }
@@ -155,16 +160,16 @@ const evaluateFitness = (schedule, preferences, selectedPreferences) => {
     score += breakTimeExceedInstances * 5;
   }
 
-  console.log(
-    daysWithClasses,
-    daysExceed,
-    startTimes,
-    startTimeExceedDays,
-    endTimes,
-    endTimeExceedDays,
-    breakTimeExceedInstances,
-    score
-  );
+  // //console.log(
+  //   daysWithClasses,
+  //   daysExceed,
+  //   startTimes,
+  //   startTimeExceedDays,
+  //   endTimes,
+  //   endTimeExceedDays,
+  //   breakTimeExceedInstances,
+  //   score
+  // );
 
   return score;
 };
@@ -183,18 +188,8 @@ const evolvePopulation = async (
   return Promise.all(
     population.map(async (individual) => {
       if (Math.random() < 0.1) {
-        // Perform mutation
         individual.schedule = await mutate(
           individual.schedule,
-          selectedCourses
-        );
-      } else if (Math.random() < 0.1) {
-        // Perform crossover
-        const partnerIndex = Math.floor(Math.random() * population.length);
-        const partner = population[partnerIndex];
-        individual.schedule = await crossover(
-          individual.schedule,
-          partner.schedule,
           selectedCourses
         );
       }
@@ -208,19 +203,6 @@ const evolvePopulation = async (
       };
     })
   );
-};
-
-const crossover = async (schedule1, schedule2) => {
-  const childSchedule = [];
-  for (let i = 0; i < schedule1.length; i++) {
-    if (Math.random() < 0.5 && schedule1[i]) {
-      childSchedule.push(schedule1[i]);
-    } else if (schedule2[i]) {
-      childSchedule.push(schedule2[i]);
-    }
-  }
-
-  return childSchedule;
 };
 
 const mutate = async (schedule, selectedCourses) => {
@@ -320,43 +302,74 @@ const formatTime = (decimalTime) => {
   )}`;
 };
 
-const Optimiser = async (selectedCourses, preferences, selectedPreferences) => {
-  const populationSize = 160;
-  const generations = 5;
-  let population = await generateInitialPopulation(
-    populationSize,
-    selectedCourses,
-    preferences,
-    selectedPreferences
-  );
+const OptimiserTest = async (
+  selectedCourses,
+  preferences,
+  selectedPreferences
+) => {
+  const results = [];
+  for (const populationSize of populationSize_list) {
+    for (const generations of generations_list) {
+      console.log(populationSize, generations);
+      let population = await generateInitialPopulation(
+        populationSize,
+        selectedCourses,
+        preferences,
+        selectedPreferences
+      );
 
-  for (let i = 0; i < generations; i++) {
-    population = await evolvePopulation(
-      population,
-      selectedCourses,
-      preferences,
-      selectedPreferences
-    );
+      for (let i = 0; i < generations; i++) {
+        population = await evolvePopulation(
+          population,
+          selectedCourses,
+          preferences,
+          selectedPreferences
+        );
+      }
+
+      const uniqueSchedules = getUniqueSchedules(population);
+
+      const sortedSchedules = uniqueSchedules
+        .sort((a, b) => a.fitness - b.fitness) // Sort in ascending order
+        .slice(0, 3) // Select the first three schedules
+        .map((schedule, index) => ({
+          schedule: schedule.schedule,
+          avgStartTime: formatTime(
+            calculateEarliestTime(schedule.schedule, "startTime")
+          ),
+          avgEndTime: formatTime(
+            calculateLatestTime(schedule.schedule, "endTime")
+          ),
+          avgBreakTime: formatTime(
+            calculateAverageBreakTime(schedule.schedule)
+          ),
+          days: new Set(schedule.schedule.map((entry) => entry.day)).size,
+          score: schedule.fitness, // Include the score
+          timetableNumber: index + 1, // Add timetable number
+        }));
+
+      const scores = [
+        sortedSchedules[0].score,
+        sortedSchedules[1].score,
+        sortedSchedules[2].score,
+      ];
+      console.log(scores);
+      results.push({
+        populationSize,
+        generations,
+        score1: scores[0],
+        score2: scores[1],
+        score3: scores[2],
+      });
+    }
   }
-
-  const uniqueSchedules = getUniqueSchedules(population);
-
-  const sortedSchedules = uniqueSchedules
-    .sort((a, b) => a.fitness - b.fitness) // Sort in ascending order
-    .slice(0, 3) // Select the first three schedules
-    .map((schedule, index) => ({
-      schedule: schedule.schedule,
-      avgStartTime: formatTime(
-        calculateEarliestTime(schedule.schedule, "startTime")
-      ),
-      avgEndTime: formatTime(calculateLatestTime(schedule.schedule, "endTime")),
-      avgBreakTime: formatTime(calculateAverageBreakTime(schedule.schedule)),
-      days: new Set(schedule.schedule.map((entry) => entry.day)).size,
-      score: schedule.fitness, // Include the score
-      timetableNumber: index + 1, // Add timetable number
-    }));
+  // Export results to Excel
+  const worksheet = XLSX.utils.json_to_sheet(results);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
+  XLSX.writeFile(workbook, "Optimiser_Test_Results_2.xlsx");
 
   return sortedSchedules;
 };
 
-export default Optimiser;
+export default OptimiserTest;

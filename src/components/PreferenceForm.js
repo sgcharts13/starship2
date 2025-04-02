@@ -49,7 +49,7 @@ const PreferenceForm = ({
           />
         </label>
         <label>
-          Start Time:
+          Earliest Start Time:
           <select
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
@@ -67,7 +67,7 @@ const PreferenceForm = ({
           />
         </label>
         <label>
-          End Time:
+          Latest End Time:
           <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
             {filterEndTimeOptions(startTime).map((time) => (
               <option key={time} value={time}>
@@ -82,7 +82,7 @@ const PreferenceForm = ({
           />
         </label>
         <label>
-          Average Break Time: {breakTime}h
+          Minimum Break Time: {breakTime}h
           <input
             type="range"
             min="0.5"

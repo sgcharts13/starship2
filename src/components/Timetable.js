@@ -9,11 +9,15 @@ const Timetable = ({ selectedIndexes, courseColors }) => {
     const fetchTimeslots = async () => {
       const newTimeslots = [];
       const processedIndexes = new Set();
+      var selectedIndexBool = true;
       console.log(selectedIndexes);
-      if (selectedIndexes === undefined) {
-        selectedIndexes[0].selectedIndexId = undefined;
+      if (selectedIndexes.length === 0) {
+        selectedIndexBool = false;
+      } else if (selectedIndexes[0].courseIndex !== undefined) {
+        selectedIndexBool = false;
       }
-      if (selectedIndexes[0].selectedIndexId !== undefined) {
+      console.log(selectedIndexes, selectedIndexBool);
+      if (selectedIndexBool === true) {
         for (const {
           courseName,
           courseCode,
@@ -159,7 +163,6 @@ const Timetable = ({ selectedIndexes, courseColors }) => {
                   );
 
                   if (slot) {
-                    console.log(slot);
                     const rowSpan = calculateRowSpan(slot.start, slot.end);
                     const isClash = slot.courses.length > 1;
                     const backgroundColor = isClash
