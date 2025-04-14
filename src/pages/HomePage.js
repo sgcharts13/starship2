@@ -32,35 +32,100 @@ const HomePage = () => {
         timetableRef.current.style.backgroundColor;
       timetableRef.current.style.backgroundColor = "white";
 
-      // Clone the node to ensure the entire content is captured
-      const clone = timetableRef.current.cloneNode(true);
-      clone.style.width = `${timetableRef.current.scrollWidth}px`;
-      clone.style.height = `${timetableRef.current.scrollHeight}px`;
+      // Create a wrapper to combine timetable and selected courses list
+      const wrapper = document.createElement("div");
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "flex-start";
+      wrapper.style.backgroundColor = "white";
+      wrapper.style.margin = "0"; // Remove margins
+      wrapper.style.padding = "0"; // Remove padding
 
-      // Apply scaling to shrink the content to half its size
-      clone.style.transform = "scale(0.5)";
-      clone.style.transformOrigin = "top left";
-      clone.style.width = `${timetableRef.current.scrollWidth * 2}px`;
-      clone.style.height = `${timetableRef.current.scrollHeight * 2}px`;
+      // Clone the timetable
+      const timetableClone = timetableRef.current.cloneNode(true);
+      timetableClone.style.width = `${timetableRef.current.scrollWidth}px`;
+      timetableClone.style.height = `${timetableRef.current.scrollHeight}px`;
 
-      document.body.appendChild(clone);
+      // Clone the selected courses list
+      const selectedCoursesList = document.querySelector(
+        ".selected-courses-container"
+      );
+      const selectedCoursesClone = selectedCoursesList.cloneNode(true);
 
-      toPng(clone, {
+      // Remove buttons from the cloned selected courses list
+      const buttons = selectedCoursesClone.querySelector(".button-container");
+      if (buttons) {
+        buttons.remove();
+      }
+
+      // Ensure the selected index is displayed in the dropdowns
+      const originalSelectors = selectedCoursesList.querySelectorAll("select");
+      const clonedSelectors = selectedCoursesClone.querySelectorAll("select");
+      clonedSelectors.forEach((clonedSelector, index) => {
+        clonedSelector.value = originalSelectors[index].value;
+      });
+
+      selectedCoursesClone.style.width = `${selectedCoursesList.scrollWidth}px`;
+      selectedCoursesClone.style.height = `${selectedCoursesList.scrollHeight}px`;
+
+      // Append clones to the wrapper
+      wrapper.appendChild(timetableClone);
+      wrapper.appendChild(selectedCoursesClone);
+
+      // Remove the navbar to eliminate the left gap
+      const navbar = document.querySelector(".navbar");
+      if (navbar) {
+        navbar.style.display = "none";
+      }
+
+      // Adjust wrapper layout to flush left
+      wrapper.style.marginLeft = "0";
+      wrapper.style.marginRight = "0";
+
+      // Fix overlap issue by adding spacing between timetable and selected courses list
+      wrapper.style.gap = "20px"; // Add spacing between the two elements
+
+      // Apply scaling to shrink the content if it's too large
+      const scaleFactor = 0.5; // Shrink to 50% of the original size
+      wrapper.style.transform = `scale(${scaleFactor})`;
+      wrapper.style.transformOrigin = "top left";
+      wrapper.style.width = `${
+        timetableRef.current.scrollWidth + selectedCoursesList.scrollWidth + 20
+      }px`; // Include gap in width
+      wrapper.style.height = `${Math.max(
+        timetableRef.current.scrollHeight,
+        selectedCoursesList.scrollHeight
+      )}px`;
+
+      document.body.appendChild(wrapper);
+
+      toPng(wrapper, {
         cacheBust: true,
-        width: clone.scrollWidth / 2,
-        height: clone.scrollHeight / 2,
+        width: wrapper.scrollWidth * scaleFactor,
+        height: wrapper.scrollHeight * scaleFactor,
       })
         .then((dataUrl) => {
           timetableRef.current.style.backgroundColor = originalBackgroundColor;
+
+          // Restore the navbar after capturing
+          if (navbar) {
+            navbar.style.display = "";
+          }
+
           const link = document.createElement("a");
           link.href = dataUrl;
-          link.download = "timetable.png";
+          link.download = "timetable_and_courses.png";
           link.click();
-          document.body.removeChild(clone); // Remove the clone after capturing
+          document.body.removeChild(wrapper); // Remove the wrapper after capturing
         })
         .catch((err) => {
-          console.error("Failed to export timetable as PNG", err);
-          document.body.removeChild(clone); // Ensure the clone is removed in case of error
+          console.error("Failed to export timetable and courses as PNG", err);
+
+          // Restore the navbar in case of error
+          if (navbar) {
+            navbar.style.display = "";
+          }
+
+          document.body.removeChild(wrapper); // Ensure the wrapper is removed in case of error
         });
     }
   };
