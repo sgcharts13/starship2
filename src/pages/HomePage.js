@@ -2,17 +2,24 @@ import React, { useState, useEffect, useRef } from "react";
 import Timetable from "../components/Timetable";
 import { useCourseContext } from "../context/CourseContext";
 import "../styles/homePage.css";
-import "../styles/selectedCoursesList.css"; // Import the new selected courses list CSS file
-import { Link, useLocation } from "react-router-dom";
+import "../styles/selectedCoursesList.css";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getIndexDetails } from "../services/databaseService";
 import Navbar from "../components/Navbar";
-import html2canvas from "html2canvas"; // Import html2canvas to render DOM elements to canvas
+import html2canvas from "html2canvas";
 
 const HomePage = () => {
-  const { selectedCourses, removeCourse, courseColors } = useCourseContext();
+  const {
+    selectedCourses,
+    addCourse,
+    removeCourse,
+    courseColors,
+    setCourseColors,
+  } = useCourseContext();
   const [selectedIndexes, setSelectedIndexes] = useState([]);
   const [indexDetails, setIndexDetails] = useState({});
   const location = useLocation();
+  const navigate = useNavigate();
   const timetableRef = useRef(null);
   const selectedCoursesRef = useRef(null);
 
@@ -22,66 +29,80 @@ const HomePage = () => {
   }
 
   useEffect(() => {
+    // Parse query parameters to prepopulate selected courses and indexes
+    const params = new URLSearchParams(location.search);
+    const courses = params.get("courses");
+    if (courses) {
+      const parsedCourses = JSON.parse(decodeURIComponent(courses));
+      setSelectedIndexes(parsedCourses);
+
+      // Populate selectedCourses using addCourse and assign unique background colors
+      parsedCourses.forEach((course) => {
+        addCourse({
+          code: course.courseCode,
+          name: course.courseName,
+          indexes: [course.selectedIndexId], // Assuming indexes are provided
+        });
+      });
+
+      // Assign unique background colors for each course
+      const newCourseColors = {};
+      parsedCourses.forEach((course, index) => {
+        const color = `hsl(${(index * 137.5) % 360}, 70%, 80%)`; // Generate unique colors
+        newCourseColors[course.courseCode] = color;
+      });
+      setCourseColors(newCourseColors);
+    }
+
     if (location.state?.addedIndexes) {
       setSelectedIndexes(location.state.addedIndexes);
     }
-  }, [location.state]);
+  }, [location.state, location.search, addCourse, setCourseColors]);
 
   // Function to export timetable and selected courses list as combined PNG
   const handleExportAsPng = async () => {
-    // Use html2canvas to convert the timetable DOM element to a canvas
     const timetableCanvas = await html2canvas(timetableRef.current);
-
-    // Temporarily adjust the style of the selected courses container to fit all content
     const originalStyle = selectedCoursesRef.current.style.cssText;
     selectedCoursesRef.current.style.height = "auto";
     selectedCoursesRef.current.style.overflow = "visible";
-
-    // Use html2canvas to convert the selected courses list DOM element to a canvas
     const coursesCanvas = await html2canvas(selectedCoursesRef.current);
-
-    // Restore the original style of the selected courses container
     selectedCoursesRef.current.style.cssText = originalStyle;
 
-    // Get the width and height of both canvases
     const timetableWidth = timetableCanvas.width;
     const timetableHeight = timetableCanvas.height;
     const coursesWidth = coursesCanvas.width;
     const coursesHeight = coursesCanvas.height;
 
-    // Calculate final canvas dimensions
     const totalWidth = timetableWidth + coursesWidth;
     const maxHeight = Math.max(timetableHeight, coursesHeight);
 
-    // Create a new canvas to hold both images side by side
     const finalCanvas = document.createElement("canvas");
     finalCanvas.width = totalWidth;
     finalCanvas.height = maxHeight;
 
-    // Get the 2D drawing context of the final canvas
     const ctx = finalCanvas.getContext("2d");
-
-    // Set the background color to white
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-
-    // Draw the timetable image on the left
     ctx.drawImage(timetableCanvas, 0, 0);
-    // Draw the selected courses list image on the right
     ctx.drawImage(coursesCanvas, timetableWidth, 0);
 
-    // Convert the final canvas to a data URL and trigger a download
     const link = document.createElement("a");
     link.download = "full_timetable.png";
     link.href = finalCanvas.toDataURL("image/png");
     link.click();
   };
 
-  const handleIndexChange = async (course, selectedIndexId) => {
-    console.log(course, selectedIndexId);
+  // Function to generate a shareable link
+  const handleGetShareableLink = () => {
+    const encodedCourses = encodeURIComponent(JSON.stringify(selectedIndexes));
+    const shareableLink = `${window.location.origin}${window.location.pathname}?courses=${encodedCourses}`;
+    navigator.clipboard.writeText(shareableLink).then(() => {
+      alert("Shareable link copied to clipboard!");
+    });
+  };
 
+  const handleIndexChange = async (course, selectedIndexId) => {
     if (selectedIndexId === "") {
-      // Remove index details if "Select Index" is chosen
       setSelectedIndexes((prev) =>
         prev.filter((item) => item.courseName !== course.name)
       );
@@ -105,11 +126,8 @@ const HomePage = () => {
     const selectedIndex = course.indexes.find(
       (index) => index === selectedIndexId
     );
-    console.log(selectedIndex);
     if (selectedIndex) {
-      // Assuming you have a function to get the timeslot details for the selected index
       const indexChangeDetails = await getIndexDetails(selectedIndex);
-      console.log(indexChangeDetails);
       if (indexChangeDetails) {
         setIndexDetails((prev) => ({
           ...prev,
@@ -162,6 +180,8 @@ const HomePage = () => {
                 />
               </svg>
             </button>
+            <br></br>
+            <button onClick={handleGetShareableLink}>Get Shareable Link</button>
           </div>
           {selectedCourses?.length > 0 ? (
             selectedCourses.map((course) => (
@@ -198,7 +218,6 @@ const HomePage = () => {
                 >
                   -
                 </button>
-                {console.log(indexDetails[course.code])}
                 {Array.isArray(indexDetails[course.code])
                   ? indexDetails[course.code].map((timeslot, idx) => (
                       <p key={idx}>
