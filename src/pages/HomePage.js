@@ -5,8 +5,8 @@ import "../styles/homePage.css";
 import "../styles/selectedCoursesList.css"; // Import the new selected courses list CSS file
 import { Link, useLocation } from "react-router-dom";
 import { getIndexDetails } from "../services/databaseService";
-import { toPng } from "html-to-image";
 import Navbar from "../components/Navbar";
+import html2canvas from "html2canvas"; // Import html2canvas to render DOM elements to canvas
 
 const HomePage = () => {
   const { selectedCourses, removeCourse, courseColors } = useCourseContext();
@@ -14,6 +14,7 @@ const HomePage = () => {
   const [indexDetails, setIndexDetails] = useState({});
   const location = useLocation();
   const timetableRef = useRef(null);
+  const selectedCoursesRef = useRef(null);
 
   function zeroPad(num, places) {
     var zero = places - num.toString().length + 1;
@@ -26,108 +27,54 @@ const HomePage = () => {
     }
   }, [location.state]);
 
-  const handleExportAsPng = () => {
-    if (timetableRef.current) {
-      const originalBackgroundColor =
-        timetableRef.current.style.backgroundColor;
-      timetableRef.current.style.backgroundColor = "white";
+  // Function to export timetable and selected courses list as combined PNG
+  const handleExportAsPng = async () => {
+    // Use html2canvas to convert the timetable DOM element to a canvas
+    const timetableCanvas = await html2canvas(timetableRef.current);
 
-      // Create a wrapper to combine timetable and selected courses list
-      const wrapper = document.createElement("div");
-      wrapper.style.display = "flex";
-      wrapper.style.alignItems = "flex-start";
-      wrapper.style.backgroundColor = "white";
-      wrapper.style.margin = "0"; // Remove margins
-      wrapper.style.padding = "0"; // Remove padding
+    // Temporarily adjust the style of the selected courses container to fit all content
+    const originalStyle = selectedCoursesRef.current.style.cssText;
+    selectedCoursesRef.current.style.height = "auto";
+    selectedCoursesRef.current.style.overflow = "visible";
 
-      // Clone the timetable
-      const timetableClone = timetableRef.current.cloneNode(true);
-      timetableClone.style.width = `${timetableRef.current.scrollWidth}px`;
-      timetableClone.style.height = `${timetableRef.current.scrollHeight}px`;
+    // Use html2canvas to convert the selected courses list DOM element to a canvas
+    const coursesCanvas = await html2canvas(selectedCoursesRef.current);
 
-      // Clone the selected courses list
-      const selectedCoursesList = document.querySelector(
-        ".selected-courses-container"
-      );
-      const selectedCoursesClone = selectedCoursesList.cloneNode(true);
+    // Restore the original style of the selected courses container
+    selectedCoursesRef.current.style.cssText = originalStyle;
 
-      // Remove buttons from the cloned selected courses list
-      const buttons = selectedCoursesClone.querySelector(".button-container");
-      if (buttons) {
-        buttons.remove();
-      }
+    // Get the width and height of both canvases
+    const timetableWidth = timetableCanvas.width;
+    const timetableHeight = timetableCanvas.height;
+    const coursesWidth = coursesCanvas.width;
+    const coursesHeight = coursesCanvas.height;
 
-      // Ensure the selected index is displayed in the dropdowns
-      const originalSelectors = selectedCoursesList.querySelectorAll("select");
-      const clonedSelectors = selectedCoursesClone.querySelectorAll("select");
-      clonedSelectors.forEach((clonedSelector, index) => {
-        clonedSelector.value = originalSelectors[index].value;
-      });
+    // Calculate final canvas dimensions
+    const totalWidth = timetableWidth + coursesWidth;
+    const maxHeight = Math.max(timetableHeight, coursesHeight);
 
-      selectedCoursesClone.style.width = `${selectedCoursesList.scrollWidth}px`;
-      selectedCoursesClone.style.height = `${selectedCoursesList.scrollHeight}px`;
+    // Create a new canvas to hold both images side by side
+    const finalCanvas = document.createElement("canvas");
+    finalCanvas.width = totalWidth;
+    finalCanvas.height = maxHeight;
 
-      // Append clones to the wrapper
-      wrapper.appendChild(timetableClone);
-      wrapper.appendChild(selectedCoursesClone);
+    // Get the 2D drawing context of the final canvas
+    const ctx = finalCanvas.getContext("2d");
 
-      // Remove the navbar to eliminate the left gap
-      const navbar = document.querySelector(".navbar");
-      if (navbar) {
-        navbar.style.display = "none";
-      }
+    // Set the background color to white
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-      // Adjust wrapper layout to flush left
-      wrapper.style.marginLeft = "0";
-      wrapper.style.marginRight = "0";
+    // Draw the timetable image on the left
+    ctx.drawImage(timetableCanvas, 0, 0);
+    // Draw the selected courses list image on the right
+    ctx.drawImage(coursesCanvas, timetableWidth, 0);
 
-      // Fix overlap issue by adding spacing between timetable and selected courses list
-      wrapper.style.gap = "20px"; // Add spacing between the two elements
-
-      // Apply scaling to shrink the content if it's too large
-      const scaleFactor = 0.5; // Shrink to 50% of the original size
-      wrapper.style.transform = `scale(${scaleFactor})`;
-      wrapper.style.transformOrigin = "top left";
-      wrapper.style.width = `${
-        timetableRef.current.scrollWidth + selectedCoursesList.scrollWidth + 20
-      }px`; // Include gap in width
-      wrapper.style.height = `${Math.max(
-        timetableRef.current.scrollHeight,
-        selectedCoursesList.scrollHeight
-      )}px`;
-
-      document.body.appendChild(wrapper);
-
-      toPng(wrapper, {
-        cacheBust: true,
-        width: wrapper.scrollWidth * scaleFactor,
-        height: wrapper.scrollHeight * scaleFactor,
-      })
-        .then((dataUrl) => {
-          timetableRef.current.style.backgroundColor = originalBackgroundColor;
-
-          // Restore the navbar after capturing
-          if (navbar) {
-            navbar.style.display = "";
-          }
-
-          const link = document.createElement("a");
-          link.href = dataUrl;
-          link.download = "timetable_and_courses.png";
-          link.click();
-          document.body.removeChild(wrapper); // Remove the wrapper after capturing
-        })
-        .catch((err) => {
-          console.error("Failed to export timetable and courses as PNG", err);
-
-          // Restore the navbar in case of error
-          if (navbar) {
-            navbar.style.display = "";
-          }
-
-          document.body.removeChild(wrapper); // Ensure the wrapper is removed in case of error
-        });
-    }
+    // Convert the final canvas to a data URL and trigger a download
+    const link = document.createElement("a");
+    link.download = "full_timetable.png";
+    link.href = finalCanvas.toDataURL("image/png");
+    link.click();
   };
 
   const handleIndexChange = async (course, selectedIndexId) => {
@@ -194,7 +141,7 @@ const HomePage = () => {
           selectedIndexes={selectedIndexes}
           courseColors={courseColors}
         />
-        <div className="selected-courses-container">
+        <div className="selected-courses-container" ref={selectedCoursesRef}>
           <h2>Selected Courses</h2>
           <div className="button-container">
             <Link to="/add-courses">
